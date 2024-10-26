@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Chatbot</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body, html {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f0f2f5;
+        }
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+            width: 100%;
+            max-width: 500px;
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+        .chat-header {
+            background-color: #4267b2;
+            color: #fff;
+            padding: 15px;
+            font-size: 1.5em;
+            text-align: center;
+            font-weight: bold;
+        }
+        .chat-body {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #e9effb;
+        }
+        .chat-message {
+            margin: 10px 0;
+            padding: 12px 18px;
+            border-radius: 25px;
+            max-width: 75%;
+            display: inline-block;
+            font-size: 1em;
+            line-height: 1.4;
+        }
+        .chat-message.user {
+            background-color: #4267b2;
+            color: #fff;
+            align-self: flex-end;
+            border-bottom-right-radius: 0;
+        }
+        .chat-message.bot {
+            background-color: #f1f3f8;
+            color: #333;
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+        .chat-footer {
+            padding: 15px;
+            display: flex;
+            background-color: #f0f2f5;
+            border-top: 1px solid #e0e0e0;
+        }
+        .chat-footer input {
+            flex: 1;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 25px;
+            margin-right: 10px;
+            outline: none;
+            font-size: 1em;
+            transition: box-shadow 0.3s;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .chat-footer input:focus {
+            box-shadow: 0 0 8px rgba(66, 103, 178, 0.3);
+        }
+        .chat-footer button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            background-color: #4267b2;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .chat-footer button:hover {
+            background-color: #365899;
+        }
+        .clear-button {
+            background-color: #e74c3c;
+            margin-left: 10px;
+            transition: background-color 0.3s;
+        }
+        .clear-button:hover {
+            background-color: #c0392b;
+        }
+        #typing-indicator {
+            display: none;
+            font-size: 0.9em;
+            color: #888;
+            font-style: italic;
+            padding-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">Chatbot</div>
+        <div class="chat-body" id="chat-body"></div>
+        <div id="typing-indicator">Bot is typing...</div>
+        <div class="chat-footer">
+            <input type="text" id="message-input" placeholder="Type your message...">
+            <button id="send-button">Send</button>
+            <button class="clear-button" id="clear-button">Clear</button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('send-button').addEventListener('click', sendMessage);
+            document.getElementById('clear-button').addEventListener('click', clearChat);
+            async function sendMessage() {
+                const userMessage = document.getElementById('message-input').value.trim();
+                if(userMessage){
+                    addMessage(userMessage, 'user');
+                    document.getElementById('message-input').value = "";
+                    document.getElementById('typing-indicator').style.display = "block";
+                    try {
+                        const response = await fetch('/chat', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ message: userMessage })
+                        });
+                        document.getElementById('typing-indicator').style.display = "none";
+                        if(response.ok){
+                            const data=await response.json();
+                            addMessage(data.response, 'bot');
+                        }else{
+                            addMessage("Error: Unable to fetch response", 'bot');
+                        }
+                    }catch(error){
+                        document.getElementById('typing-indicator').style.display = "none";
+                        addMessage("Error: " + error.message, 'bot');
+                    }
+                }
+            }
+            function addMessage(text,sender){
+                const chatBody=document.getElementById('chat-body');
+                const messageDiv=document.createElement('div');
+                messageDiv.className=`chat-message ${sender}`;
+                messageDiv.textContent=text;
+                chatBody.appendChild(messageDiv);
+                chatBody.scrollTop=chatBody.scrollHeight;
+            }
+            function clearChat(){
+                document.getElementById('chat-body').innerHTML='';
+            }
+        });
+    </script>
+</body>
+</html>
