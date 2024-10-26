@@ -11,5 +11,8 @@
         "src": "/(.*)",
         "dest": "app.py"
       }
-    ]
+    ],
+    "env": {
+        "MY_ENV_VAR": "value"
   }
+}
